@@ -8,24 +8,123 @@
   <style>
     body {
       font-family: sans-serif;
-      max-width: 600px;
-      margin: 50px auto;
-      text-align: center;
-      background-color: #f0f0f0;
+      background: #f9f9f9;
       padding: 2em;
-      border-radius: 1em;
+      max-width: 600px;
+      margin: auto;
     }
     h1 {
-      color: #222;
+      color: #333;
+      text-align: center;
     }
-    p {
-      font-size: 18px;
+    .section {
+      margin-bottom: 2em;
+      padding: 1em;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+    }
+    input, textarea, button {
+      width: 100%;
+      margin-top: 0.5em;
+      padding: 0.6em;
+      font-size: 1em;
+    }
+    .event {
+      margin: 0.5em 0;
+      padding: 0.5em;
+      background: #eef;
+      border-radius: 5px;
+    }
+    .delete {
+      float: right;
+      color: red;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <h1>Bats Footy Program App</h1>
-  <p>This is a simulated web version.</p>
-  <p>The full React Native app requires an Expo web build which must be generated locally.</p>
+  <h1>Bats Footy Program</h1>
+
+  <div class="section" id="info-section">
+    <h2>Important Information</h2>
+    <div id="info-display"></div>
+    <textarea id="info-input" placeholder="Update info (teachers only)"></textarea>
+    <button onclick="updateInfo()">Save Info</button>
+  </div>
+
+  <div class="section" id="events-section">
+    <h2>Upcoming Events</h2>
+    <div id="events-list"></div>
+    <input type="text" id="event-input" placeholder="Add event (teachers only)" />
+    <button onclick="addEvent()">Add Event</button>
+  </div>
+
+  <div class="section">
+    <h2>Teacher Access</h2>
+    <input type="password" id="code-input" placeholder="Enter teacher code" />
+    <button onclick="checkCode()">Unlock Editing</button>
+  </div>
+
+  <script>
+    const storage = window.localStorage;
+    let isTeacher = false;
+
+    function loadInfo() {
+      const info = storage.getItem("info") || "";
+      document.getElementById("info-display").innerText = info;
+    }
+
+    function loadEvents() {
+      const events = JSON.parse(storage.getItem("events") || "[]");
+      const list = document.getElementById("events-list");
+      list.innerHTML = "";
+      events.forEach((event, i) => {
+        const div = document.createElement("div");
+        div.className = "event";
+        div.innerHTML = event + (isTeacher ? `<span class='delete' onclick='deleteEvent(${i})'>✖</span>` : "");
+        list.appendChild(div);
+      });
+    }
+
+    function updateInfo() {
+      if (!isTeacher) return alert("Teacher access only");
+      const text = document.getElementById("info-input").value;
+      storage.setItem("info", text);
+      loadInfo();
+      document.getElementById("info-input").value = "";
+    }
+
+    function addEvent() {
+      if (!isTeacher) return alert("Teacher access only");
+      const text = document.getElementById("event-input").value;
+      const events = JSON.parse(storage.getItem("events") || "[]");
+      events.push(text);
+      storage.setItem("events", JSON.stringify(events));
+      loadEvents();
+      document.getElementById("event-input").value = "";
+    }
+
+    function deleteEvent(index) {
+      const events = JSON.parse(storage.getItem("events") || "[]");
+      events.splice(index, 1);
+      storage.setItem("events", JSON.stringify(events));
+      loadEvents();
+    }
+
+    function checkCode() {
+      const code = document.getElementById("code-input").value;
+      if (code === "bats2025") {
+        isTeacher = true;
+        alert("Teacher mode unlocked");
+        loadEvents();
+      } else {
+        alert("Incorrect code");
+      }
+    }
+
+    loadInfo();
+    loadEvents();
+  </script>
 </body>
 </html>
